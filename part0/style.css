@@ -1,0 +1,63 @@
+/* 1. 基础重置：让页面在不同浏览器看起来一致 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    /* display: flex; */
+    /* justify-content: center; */
+    padding-top: 50px;
+    margin: 0;
+}
+
+/* 2. 容器样式 */
+.container {
+    max-width: 600px;
+    text-align: center;
+}
+
+/* 3. 卡片设计 */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    /* 圆角：数值越大越圆 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    /* 阴影：让卡片“浮起来” */
+    margin: 20px 0;
+    transition: transform 0.3s ease;
+    /* 动画过渡效果 */
+}
+
+/* 4. 交互效果：鼠标悬停在卡片上时 */
+.card:hover {
+    transform: translateY(-5px);
+    /* 向上跳动 5 像素 */
+}
+
+/* 5. 按钮样式 */
+.btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    /* 悬停时深蓝色 */
+}
+
+/* 6. 列表样式 */
+.features {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    display: inline-block;
+}
+
+.features li {
+    margin: 10px 0;
+    font-weight: bold;
+}
