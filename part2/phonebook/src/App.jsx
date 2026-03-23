@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import personsService from './service/persons'
+import Notification from './components/Notification'
 
-const PersonList = ({ persons, setPersons }) => {
+const PersonList = ({ persons, setPersons, setMessage, setMessageType }) => {
   return (
     <>
       {persons.map(
@@ -12,6 +13,13 @@ const PersonList = ({ persons, setPersons }) => {
                 personsService
                   .deletePerson(persons.find(x => x.name === person.name).id)
                   .then(() => setPersons(persons.filter(x => x.name !== person.name)))
+                  .catch((error) => {
+                    setMessageType('error')
+                    setMessage(`Information of ${person.name} has been removed`)
+                    setTimeout(() => {
+                      setMessage(null)
+                    }, 5000)
+                  })
               }
             }}>delete</button>
           </p>)}
@@ -60,6 +68,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [nameToSearch, setNameToSearch] = useState('')
+  const [message, setMessage] = useState(null)
+  const [messageType, setMessageType] = useState('success')
 
   useEffect(
     () => {
@@ -88,20 +98,25 @@ const App = () => {
       return
     }
     personsService.create(personObject).then(newPerson => setPersons(persons.concat(newPerson)))
-
+    setMessage(`Added ${newName}`)
+    setMessageType('error')
     setNewName('')
     setNewNumber('')
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
   }
 
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} type={messageType}></Notification>
       <Filter nameToSearch={nameToSearch} setNameToSearch={setNameToSearch}></Filter>
       <h2>add a new</h2>
       <PersonForm newName={newName} onNameChange={setNewName} newNumber={newNumber} onNumberChange={setNewNumber} onSubmit={handleAddPerson}></PersonForm>
       <h2>Numbers</h2>
-      <PersonList persons={personsToShow} setPersons={setPersons}></PersonList>
+      <PersonList persons={personsToShow} setPersons={setPersons} setMessage={setMessage} setMessageType={setMessageType}> </PersonList>
     </div>
   )
 }

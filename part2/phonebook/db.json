@@ -1,14 +1,9 @@
 {
   "persons": [
     {
-      "name": "Hela",
-      "number": "123456777777",
-      "id": "nai-TTdkctE"
-    },
-    {
-      "name": "hello",
-      "number": "1232443534546",
-      "id": "lfzs-iawDUs"
+      "name": "Wyatt",
+      "number": "13728990092",
+      "id": "MOc2KMPztMw"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
