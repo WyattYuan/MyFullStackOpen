@@ -1,4 +1,5 @@
-import { use, useState } from 'react'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
 
 const PersonList = ({ persons }) => {
   return <>
@@ -9,15 +10,14 @@ const PersonList = ({ persons }) => {
 
 const Filter = ({
   nameToSearch,
-  setNameToSearch,
-  onSubmit
+  setNameToSearch
 }) => {
   return (
     <div>
       filter shown with
-      <form onSubmit={onSubmit}>
-        <input value={nameToSearch} onChange={(event) => setNameToSearch(event.target.value)} />
-      </form>
+
+      <input value={nameToSearch} onChange={(event) => setNameToSearch(event.target.value)} />
+
     </div>
   )
 }
@@ -45,16 +45,19 @@ const PersonForm = ({
 }
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
-  const [personsToShow, setPersonsToShow] = useState(persons)
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [nameToSearch, setNameToSearch] = useState('')
+
+  useEffect(
+    () => {
+      axios.get('http://localhost:3001/persons').then(response => setPersons(response.data))
+    }
+    , [])
+
+  const personsToShow = nameToSearch === '' ? persons : persons.filter((person) => person.name.toLowerCase().includes(nameToSearch.toLowerCase()))
+
 
   const handleAddPerson = (event) => {
     event.preventDefault()
@@ -72,15 +75,11 @@ const App = () => {
     setNewNumber('')
   }
 
-  const handleSearch = (event) => {
-    event.preventDefault()
-    setPersonsToShow(persons.filter((person) => person.name.match(nameToSearch)))
-  }
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <Filter nameToSearch={nameToSearch} setNameToSearch={setNameToSearch} onSubmit={handleSearch}></Filter>
+      <Filter nameToSearch={nameToSearch} setNameToSearch={setNameToSearch}></Filter>
       <h2>add a new</h2>
       <PersonForm newName={newName} onNameChange={setNewName} newNumber={newNumber} onNumberChange={setNewNumber} onSubmit={handleAddPerson}></PersonForm>
       <h2>Numbers</h2>
