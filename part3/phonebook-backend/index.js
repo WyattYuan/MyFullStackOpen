@@ -29,12 +29,17 @@ app.get('/api/persons', (req, res) => {
 })
 
 
-app.get('/api/info', (req, res) => {
-    const requestTime = new Date()
-    res.send(
-        `<p>Phonebook has info for ${persons.length} people</p>                                                                        
-          <p>${requestTime}</p>`
-    )
+app.get('/api/info', (req, res, next) => {
+    Person.find({})
+        .then(persons => {
+            const requestTime = new Date()
+            res.send(
+                `<p>Phonebook has info for ${persons.length} people</p>
+                <p>${requestTime}</p>`
+            )
+        }
+        ).catch(error => next(error))
+
 })
 
 
@@ -44,18 +49,12 @@ app.get('/api/persons/:id', (req, res) => {
     )
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    Person.findById(req.params.id)
-        .then(person => {
-            if (person) {
-                response.json(person)
-            } else {
-                response.status(404).end()
-            }
-        })
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then(result => { res.status(204).end() }
+        )
         .catch(error => {
-            console.log(error)
-            response.status(400).send({ error: 'malformatted id' })
+            next(error)
         })
 })
 
@@ -66,20 +65,37 @@ app.post('/api/persons', (req, res) => {
             { error: 'name or number missing' }
         )
     }
-    if (persons.find(person => person.name === body.name)) {
-        return res.status(400).json(
-            { error: 'name must be unique' }
-        )
-    }
 
-    const newPerson = {
+    const newPerson = new Person({
         id: crypto.randomUUID(),
         name: body.name,
         number: body.number
-    }
+    })
 
-    persons = persons.concat(newPerson)
-    res.json(newPerson)
+
+    newPerson.save().then(
+        savedPeson => res.json(savedPeson)
+    )
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+    const { name, number } = req.body
+    Person.findById(req.params.id).then(
+        person => {
+            if (!person) {
+                return res.status(404).end()
+            }
+
+            person.name = name
+            person.number = number
+
+            return person.save().then(
+                updatedPerson => { res.json(updatedPerson) }
+            )
+        }
+    ).catch(
+        error => next(error)
+    )
 })
 
 const PORT = 3001
@@ -87,3 +103,16 @@ app.listen(PORT, () => {
     console.log(`run the fuck server on ${PORT}`);
 
 })
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+
+    next(error)
+}
+
+// this has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler)

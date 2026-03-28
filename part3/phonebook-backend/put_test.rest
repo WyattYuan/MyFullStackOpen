@@ -1,0 +1,15 @@
+PUT http://localhost:3001/api/persons/69c7944f610fbad9c4dc15a2
+Content-Type: application/json
+
+{
+    "name":"WyattYuan",
+    "number": "17817191651"
+}
+###
+PUT http://localhost:3001/api/persons/69c7944f610fbad9c4dc15a2
+Content-Type: application/json
+
+{
+    "name":"WyattYuan",
+    "number": "13728990092"
+}
