@@ -14,3 +14,40 @@ Content-Type: application/json
   "name": "Jane Smith",
   "number": "987-654-3210"
 }
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "x",
+  "number": "555-123-4567"
+}
+
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Error1",
+  "number": "1234556"
+}
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Error2",
+  "number": "1-22334455"
+}
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Error3",
+  "number": "10-22-334455"
+}

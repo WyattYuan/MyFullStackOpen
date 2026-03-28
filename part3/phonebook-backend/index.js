@@ -1,8 +1,33 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-const Person = require('./models/person')
+const PersonService = require('./models/person')
 const morgan = require('morgan')
+const util = require('util')
+
+const inspectError = (error, context = 'Unhandled error') => {
+    if (process.env.NODE_ENV === 'production') {
+        console.error(`[${context}]`, error?.message || error)
+        return
+    }
+
+    console.log('================ ERROR START ================')
+    console.log('context:', context)
+    console.log('type:', typeof error)
+    console.log('instanceof Error:', error instanceof Error)
+    console.log('constructor:', error?.constructor?.name)
+
+    if (error && typeof error === 'object') {
+        console.log('keys:', Object.keys(error))
+        console.log('ownProps:', Object.getOwnPropertyNames(error))
+    }
+
+    console.log('name:', error?.name)
+    console.log('message:', error?.message)
+    console.log('stack:', error?.stack)
+    console.log('full:', util.inspect(error, { depth: null, showHidden: true }))
+    console.log('================= ERROR END =================')
+}
 
 morgan.token('content', function (req, res) { return JSON.stringify(req.body) })
 
@@ -23,14 +48,14 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    Person.find({}).then(persons =>
+    PersonService.find({}).then(persons =>
         res.json(persons)
     )
 })
 
 
 app.get('/api/info', (req, res, next) => {
-    Person.find({})
+    PersonService.find({})
         .then(persons => {
             const requestTime = new Date()
             res.send(
@@ -44,13 +69,13 @@ app.get('/api/info', (req, res, next) => {
 
 
 app.get('/api/persons/:id', (req, res) => {
-    Person.findById(req.params.id).then(
+    PersonService.findById(req.params.id).then(
         person => res.json(person)
     )
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
-    Person.findByIdAndDelete(req.params.id)
+    PersonService.findByIdAndDelete(req.params.id)
         .then(result => { res.status(204).end() }
         )
         .catch(error => {
@@ -58,44 +83,53 @@ app.delete('/api/persons/:id', (req, res, next) => {
         })
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
-    if (!body.name || !body.number) {
-        return res.status(400).json(
-            { error: 'name or number missing' }
-        )
-    }
 
-    const newPerson = new Person({
-        id: crypto.randomUUID(),
+    PersonService.create({
         name: body.name,
         number: body.number
-    })
-
-
-    newPerson.save().then(
-        savedPeson => res.json(savedPeson)
+    }).then(
+        createdPerson => res.json(createdPerson)
+    ).catch(
+        error => {
+            inspectError(error, 'POST /api/persons create failed')
+            next(error)
+        }
     )
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
     const { name, number } = req.body
-    Person.findById(req.params.id).then(
-        person => {
-            if (!person) {
-                return res.status(404).end()
-            }
+    // PersonService.findById(req.params.id).then(
+    //     person => {
+    //         if (!person) {
+    //             return res.status(404).end()
+    //         }
 
-            person.name = name
-            person.number = number
+    //         person.name = name
+    //         person.number = number
 
-            return person.save().then(
-                updatedPerson => { res.json(updatedPerson) }
-            )
-        }
-    ).catch(
-        error => next(error)
+    //         return person.save().then(
+    //             updatedPerson => { res.json(updatedPerson) }
+    //         )
+    //     }
+    // ).catch(
+    //     error => next(error)
+    // )
+    PersonService.findByIdAndUpdate(
+        req.params.id,
+        { name, number },
+        { new: true, runValidators: true, context: 'query' }
     )
+        .then(updatedPerson => {
+            if (updatedPerson) {
+                res.json(updatedPerson)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 const PORT = 3001
@@ -105,10 +139,12 @@ app.listen(PORT, () => {
 })
 
 const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
+    inspectError(error, `${request.method} ${request.path}`)
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({ error: error.message })
     }
 
     next(error)
