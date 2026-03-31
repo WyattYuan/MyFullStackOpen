@@ -15,13 +15,13 @@ beforeEach(async () => {
     await Blog.insertMany(initialBlogs)
 })
 
-test('should get correct blogs type', async () => {
+test('验证博客文章类型', async () => {
     await api.get('/api/blogs')
         .expect(200)
         .expect('Content-Type', /application\/json/)
 })
 
-test('should get correct blogs', async () => {
+test('验证博客文章数量', async () => {
     const blogs = await retrieveBlogsAsJson()
     assert.strictEqual(blogs.length, initialBlogs.length)
 })
@@ -32,7 +32,36 @@ test('验证博客文章的唯一标识符属性名为 id', async () => {
     assert.strictEqual(blogs[0]._id, undefined)
 })
 
+test('验证新博客的创建', async () => {
+    const newBlog = {
+        title: 'Test Blog',
+        author: 'Test Author',
+        url: 'http://testblog.com',
+        likes: 10
+    }
+    await api.post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
 
+    const blogsAtEnd = await retrieveBlogsAsJson()
+    assert.strictEqual(blogsAtEnd.length, initialBlogs.length + 1)
+})
+
+test('验证如果请求中缺少 likes 属性，它将默认为值 0', async () => {
+    const newBlog = {
+        title: 'Test Blog',
+        author: 'Test Author',
+        url: 'http://testblog.com'
+    }
+    await api.post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await retrieveBlogsAsJson()
+    assert.strictEqual(blogsAtEnd[blogsAtEnd.length - 1].likes, 0)
+})
 
 after(async () => {
     await mongoose.connection.close()
