@@ -111,6 +111,21 @@ test('验证博客文章的删除', async () => {
     assert.deepStrictEqual(blogsAfter, expected)
 })
 
+test('验证博客文章的更新', async () => {
+    const blogsBefore = await retrieveBlogsAsJson()
+    const idToUpdate = blogsBefore[0].id
+    const updatedBlog = { likes: blogsBefore[0].likes + 1 }
+    const expected = { ...blogsBefore[0], ...updatedBlog } // 不会冲突。后展开的对象属性覆盖前面的。
+
+    await api.put(`/api/blogs/${idToUpdate}`)
+        .send(updatedBlog)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    const blogsAfter = await retrieveBlogsAsJson()
+    assert.deepStrictEqual(blogsAfter[0], expected)
+})
+
 after(async () => {
     await mongoose.connection.close()
 })
