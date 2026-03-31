@@ -4,20 +4,28 @@ const app = require('../app');
 const api = supertest(app);
 const mongoose = require('mongoose');
 
-const { initialBlogs, nonExistingId, blogsInDb } = require('./test_helper')
+const { initialBlogs, nonExistingId, retrieveBlogsAsJson } = require('./test_helper')
 const { test, beforeEach, after } = require('node:test')
 const { Blog } = require('../models/blog')
+
+const assert = require('node:assert/strict')
 
 beforeEach(async () => {
     await Blog.deleteMany({})
     await Blog.insertMany(initialBlogs)
 })
 
-test('should get correct blogs', async () => {
+test('should get correct blogs type', async () => {
     await api.get('/api/blogs')
         .expect(200)
         .expect('Content-Type', /application\/json/)
 })
+
+test('should get correct blogs', async () => {
+    const blogs = await retrieveBlogsAsJson()
+    assert.strictEqual(blogs.length, initialBlogs.length)
+})
+
 
 after(async () => {
     await mongoose.connection.close()
