@@ -2,7 +2,11 @@ const http = require('http')
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const logger = require('./utils/logger')
 const mongoose = require('mongoose')
+
+// 这一行有必要，因为它会执行 utils/config.js 中的代码，连接到 MongoDB 数据库
+require('./utils/config')
 
 const blogSchema = new mongoose.Schema({
     title: String,
@@ -13,8 +17,7 @@ const blogSchema = new mongoose.Schema({
 
 const Blog = mongoose.model('Blog', blogSchema)
 
-const mongoUrl = 'mongodb+srv://evanescencefx_db_user:Jo2Nipo3YhqYNxoU@cluster0.zabcasz.mongodb.net/bloglist?appName=Cluster0'
-mongoose.connect(mongoUrl)
+
 
 app.use(cors())
 app.use(express.json())
@@ -39,5 +42,5 @@ app.post('/api/blogs', (request, response) => {
 
 const PORT = 3003
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    logger.info(`Server running on port ${PORT}`)
 })
