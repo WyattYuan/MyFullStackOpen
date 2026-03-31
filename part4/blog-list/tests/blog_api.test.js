@@ -26,6 +26,13 @@ test('should get correct blogs', async () => {
     assert.strictEqual(blogs.length, initialBlogs.length)
 })
 
+test('验证博客文章的唯一标识符属性名为 id', async () => {
+    const blogs = await retrieveBlogsAsJson()
+    assert.ok(blogs[0].id)
+    assert.strictEqual(blogs[0]._id, undefined)
+})
+
+
 
 after(async () => {
     await mongoose.connection.close()
